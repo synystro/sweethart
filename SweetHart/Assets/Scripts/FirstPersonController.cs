@@ -19,6 +19,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private float m_JumpSpeed;
         [SerializeField] private float m_StickToGroundForce;
         [SerializeField] private float m_GravityMultiplier;
+        [SerializeField] private float interactDistance; // interaction distance
+
         [SerializeField] private MouseLook m_MouseLook;
         [SerializeField] private bool m_UseFovKick;
         [SerializeField] private FOVKick m_FovKick = new FOVKick();
@@ -31,15 +33,16 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private AudioClip m_LandSound;           // the sound played when character touches back on ground.
         [SerializeField] private bool jumpEnabled; // when checked enables jumping.
         [SerializeField] private bool landingSoundEnabled; // when checked enables landing sound.
+        [SerializeField] private KeyCode interactKey; // interaction key.
 
         private Camera m_Camera;
-        private bool m_Jump;
         private float m_YRotation;
         private Vector2 m_Input;
         private Vector3 m_MoveDir = Vector3.zero;
         private CharacterController m_CharacterController;
         private CollisionFlags m_CollisionFlags;
         private bool m_PreviouslyGrounded;
+        private bool m_Jump;
         private bool m_Jumping;
         private Vector3 m_OriginalCameraPosition;
         private float m_StepCycle;
@@ -66,6 +69,16 @@ namespace UnityStandardAssets.Characters.FirstPerson
         // Update is called once per frame
         private void Update()
         {
+
+#if UNITY_EDITOR
+            // Draw interaction line
+            Debug.DrawRay(m_Camera.transform.position, m_Camera.transform.forward * interactDistance, Color.green);
+#endif
+
+            if(Input.GetKeyDown(interactKey)) {
+                InteractionCheck();
+            }
+
             RotateView();
             // the jump state needs to read here to make sure it is not missed
             if (!m_Jump)
@@ -278,6 +291,16 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 return;
             }
             body.AddForceAtPosition(m_CharacterController.velocity*0.1f, hit.point, ForceMode.Impulse);
+        }
+
+        private void InteractionCheck()
+        {
+            RaycastHit hit;
+            if(Physics.Raycast(m_Camera.transform.position, m_Camera.transform.forward, out hit, interactDistance)) {
+                if (hit.transform.GetComponent<Door>()) {
+                    hit.transform.GetComponent<Door>().Interact();
+                }
+            }
         }
     }
 }
