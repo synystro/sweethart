@@ -11,9 +11,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
     public class FirstPersonController : MonoBehaviour
     {
         [SerializeField] private bool m_IsWalking;
-        [SerializeField] public float default_WalkSpeed;
-        [SerializeField] public float m_WalkSpeed;
-        [SerializeField] public float m_CrouchSpeed;
+        [SerializeField] private float initialWalkSpeed;
+        [SerializeField] private float m_WalkSpeed;
+        [SerializeField] private float m_CrouchSpeed;
         [SerializeField] private float m_RunSpeed;
         [SerializeField] [Range(0f, 1f)] private float m_RunstepLenghten;
         [SerializeField] private float m_JumpSpeed;
@@ -49,7 +49,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         // Use this for initialization
         private void Start()
         {
-            m_WalkSpeed = default_WalkSpeed;
+            m_WalkSpeed = initialWalkSpeed;
             m_CharacterController = GetComponent<CharacterController>();
             m_Camera = Camera.main;
             m_OriginalCameraPosition = m_Camera.transform.localPosition;
@@ -74,6 +74,19 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 {
                     m_Jump = CrossPlatformInputManager.GetButtonDown("Jump");
                 }
+            }
+
+            if (Input.GetButton("Crouch"))
+            {
+                m_CharacterController.height = 0.2f;
+                m_WalkSpeed = m_CrouchSpeed;
+                m_Camera.transform.localPosition = new Vector3(0, 0.3f, 0);
+
+            }
+            else
+            {
+                m_CharacterController.height = 1.5f;
+                m_WalkSpeed = initialWalkSpeed;
             }
 
             if (!m_PreviouslyGrounded && m_CharacterController.isGrounded)
