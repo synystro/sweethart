@@ -12,6 +12,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
     public class FirstPersonController : MonoBehaviour
     {
         public bool hasFrontDoorKey;
+        public bool hasBackDoorKey;
 
         [SerializeField] private bool m_IsWalking;
         [SerializeField] private float initialWalkSpeed;
@@ -308,9 +309,18 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 {
                     Door door = hit.transform.GetComponent<Door>();
 
-                    if (door.DoorID == "FrontDoor")
+                    switch (door.DoorID)
                     {
-                        if (hasFrontDoorKey) { door.Interact(); } else { door.Locked(); }
+                        case "FrontDoor":
+                            if (hasFrontDoorKey) { door.Interact(); } else { door.Locked(); }
+                            break;
+
+                        case "BackDoor":
+                            if(hasBackDoorKey) { door.Interact(); } else { door.Locked(); }
+                            break;
+                        default:
+                            Debug.Log("Unknow door.");
+                            break;
                     }
                 }
                 #endregion
@@ -321,9 +331,14 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 {
                     ItemBox itemBox = hit.transform.GetComponent<ItemBox>();
 
-                    if (itemBox.ItemName == "KeyFrontDoor")
+                    switch(itemBox.ItemName)
                     {
-                        hasFrontDoorKey = true;
+                        case "KeyFrontDoor":
+                            hasFrontDoorKey = true;
+                            break;
+                        case "KeyBackDoor":
+                            hasBackDoorKey = true;
+                            break;
                     }
 
                     Destroy(hit.transform.gameObject);
