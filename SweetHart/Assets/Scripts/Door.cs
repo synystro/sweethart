@@ -12,16 +12,18 @@ public class Door : MonoBehaviour
     [SerializeField] private bool opensInwards;
     [SerializeField] private float openingSpeed;
     [SerializeField] private bool isLocked;
+    [SerializeField] private bool isOpen;
 
     private FirstPersonController player;
     private float targetAngle;
-    private bool isOpen;
 
     public string DoorID { get { return doorID; } }
+    public bool IsLocked { get { return isLocked; } }
 
     void Start()
     {
         player = GameObject.FindWithTag("Player").GetComponent<FirstPersonController>();
+        OpenClose();
     }
 
     void Update()
@@ -32,16 +34,21 @@ public class Door : MonoBehaviour
 
     public void Interact()
     {
-            isOpen = !isOpen;
-            if (isOpen)
-            {
-                if (opensInwards) targetAngle = -90f;
-                else targetAngle = 90f;
-            }
-            else
-            {
-                targetAngle = 0f;
-            }
+        isOpen = !isOpen;
+        OpenClose();            
+    }
+
+    private void OpenClose()
+    {
+        if (isOpen)
+        {
+            if (opensInwards) targetAngle = -90f;
+            else targetAngle = 90f;
+        }
+        else
+        {
+            targetAngle = 0f;
+        }
     }
 
     public void Locked()

@@ -309,18 +309,25 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 {
                     Door door = hit.transform.GetComponent<Door>();
 
-                    switch (door.DoorID)
+                    if (door.IsLocked)
                     {
-                        case "FrontDoor":
-                            if (hasFrontDoorKey) { door.Interact(); } else { door.Locked(); }
-                            break;
+                        switch (door.DoorID)
+                        {
+                            case "FrontDoor":
+                                if (hasFrontDoorKey) { door.Interact(); } else { door.Locked(); }
+                                break;
 
-                        case "BackDoor":
-                            if(hasBackDoorKey) { door.Interact(); } else { door.Locked(); }
-                            break;
-                        default:
-                            Debug.Log("Unknow door.");
-                            break;
+                            case "BackDoor":
+                                if (hasBackDoorKey) { door.Interact(); } else { door.Locked(); }
+                                break;
+                            default:
+                                Debug.Log("Unknow door.");
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        door.Interact();
                     }
                 }
                 #endregion
