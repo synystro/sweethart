@@ -64,7 +64,7 @@ public class Hart : Spirit
         {
             if (hit.transform == target.transform)
             {
-                Debug.Log("visible");
+                //Debug.Log("visible");
 
                 target = hit.transform.GetComponent<Player>();
                 playerLastKnownLocation = target.transform.position;
@@ -73,7 +73,7 @@ public class Hart : Spirit
             }
             else
             {
-                Debug.Log("HIDDEN");
+                //Debug.Log("HIDDEN");
             }
         }
     }
@@ -82,4 +82,13 @@ public class Hart : Spirit
     {
             navMeshAgent.SetDestination(playerLastKnownLocation);
     }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.gameObject.tag == "Player")
+        {
+            Debug.Log("PLAYER KILLED");
+        }
+    }
+
 }

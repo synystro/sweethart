@@ -39,6 +39,10 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private bool landingSoundEnabled; // when checked enables landing sound.
         [SerializeField] private KeyCode interactKey; // interaction key.
 
+        [Header("Bed")]
+        [SerializeField] private float height;
+        [SerializeField] private float underBedHeight;
+
         private Camera m_Camera;
         private float m_YRotation;
         private Vector2 m_Input;
@@ -53,9 +57,15 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private float m_NextStep;
         private AudioSource m_AudioSource;
 
+        private Vector3 lastPosition;
+        private Vector3 bedHidingSpotPosition;
+        private bool isUnderBed;
+
         // Use this for initialization
         private void Start()
         {
+            height = transform.localScale.y;
+
             m_WalkSpeed = initialWalkSpeed;
             m_CharacterController = GetComponent<CharacterController>();
             m_Camera = Camera.main;
@@ -73,7 +83,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
         // Update is called once per frame
         private void Update()
         {
-
 #if UNITY_EDITOR
             // Draw interaction line
             Debug.DrawRay(m_Camera.transform.position, m_Camera.transform.forward * interactDistance, Color.green);
@@ -81,7 +90,10 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
             if (Input.GetKeyDown(interactKey))
             {
-                InteractionCheck();
+                if (!isUnderBed)
+                {
+                    InteractionCheck();
+                }
             }
 
             RotateView();
@@ -136,43 +148,61 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void FixedUpdate()
         {
-            float speed;
-            GetInput(out speed);
-            // always move along the camera forward as it is the direction that it being aimed at
-            Vector3 desiredMove = transform.forward * m_Input.y + transform.right * m_Input.x;
-
-            // get a normal for the surface that is being touched to move along it
-            RaycastHit hitInfo;
-            Physics.SphereCast(transform.position, m_CharacterController.radius, Vector3.down, out hitInfo,
-                               m_CharacterController.height / 2f, Physics.AllLayers, QueryTriggerInteraction.Ignore);
-            desiredMove = Vector3.ProjectOnPlane(desiredMove, hitInfo.normal).normalized;
-
-            m_MoveDir.x = desiredMove.x * speed;
-            m_MoveDir.z = desiredMove.z * speed;
-
-
-            if (m_CharacterController.isGrounded)
+            if (isUnderBed)
             {
-                m_MoveDir.y = -m_StickToGroundForce;
-
-                if (m_Jump)
+                transform.position = bedHidingSpotPosition;
+                if(Input.GetKeyDown(interactKey))
                 {
-                    m_MoveDir.y = m_JumpSpeed;
-                    PlayJumpSound();
-                    m_Jump = false;
-                    m_Jumping = true;
+                    // get out of bed.
+                    transform.position = lastPosition;
+                    isUnderBed = !isUnderBed;
+                    //change height to get out of bed.
+                    transform.localScale = new Vector3(
+                        transform.localScale.x,
+                        height,
+                        transform.localScale.z);
                 }
             }
             else
             {
-                m_MoveDir += Physics.gravity * m_GravityMultiplier * Time.fixedDeltaTime;
+                float speed;
+                GetInput(out speed);
+                // always move along the camera forward as it is the direction that it being aimed at
+                Vector3 desiredMove = transform.forward * m_Input.y + transform.right * m_Input.x;
+
+                // get a normal for the surface that is being touched to move along it
+                RaycastHit hitInfo;
+                Physics.SphereCast(transform.position, m_CharacterController.radius, Vector3.down, out hitInfo,
+                                   m_CharacterController.height / 2f, Physics.AllLayers, QueryTriggerInteraction.Ignore);
+                desiredMove = Vector3.ProjectOnPlane(desiredMove, hitInfo.normal).normalized;
+
+                m_MoveDir.x = desiredMove.x * speed;
+                m_MoveDir.z = desiredMove.z * speed;
+
+
+                if (m_CharacterController.isGrounded)
+                {
+                    m_MoveDir.y = -m_StickToGroundForce;
+
+                    if (m_Jump)
+                    {
+                        m_MoveDir.y = m_JumpSpeed;
+                        PlayJumpSound();
+                        m_Jump = false;
+                        m_Jumping = true;
+                    }
+                }
+                else
+                {
+                    m_MoveDir += Physics.gravity * m_GravityMultiplier * Time.fixedDeltaTime;
+                }
+                m_CollisionFlags = m_CharacterController.Move(m_MoveDir * Time.fixedDeltaTime);
+
+                ProgressStepCycle(speed);
+                UpdateCameraPosition(speed);
+
+                m_MouseLook.UpdateCursorLock();
             }
-            m_CollisionFlags = m_CharacterController.Move(m_MoveDir * Time.fixedDeltaTime);
-
-            ProgressStepCycle(speed);
-            UpdateCameraPosition(speed);
-
-            m_MouseLook.UpdateCursorLock();
         }
 
 
@@ -350,6 +380,28 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
                     Destroy(hit.transform.gameObject);
                 }
+                #endregion
+
+                #region bed interactions
+
+                if(hit.transform.GetComponent<Bed>())
+                {
+                    Bed bed = hit.transform.GetComponent<Bed>();
+
+                    if(!isUnderBed)
+                    {
+                        // change height to fit under bed.
+                        transform.localScale = new Vector3(
+                            transform.localScale.x,
+                            underBedHeight,
+                            transform.localScale.z);
+                        // go under bed.
+                        lastPosition = transform.position;
+                        bedHidingSpotPosition = bed.transform.Find("HidingSpot").transform.position;
+                        isUnderBed = !isUnderBed;
+                    }
+                }
+
                 #endregion
 
             }
