@@ -11,9 +11,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
     [RequireComponent(typeof(AudioSource))]
     public class FirstPersonController : MonoBehaviour
     {
-        public bool hasFrontDoorKey;
-        public bool hasBackDoorKey;
-
         [SerializeField] private bool m_IsWalking;
         [SerializeField] private float initialWalkSpeed;
         [SerializeField] private float m_WalkSpeed;
@@ -59,7 +56,14 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private Vector3 lastPosition;
         private Vector3 bedHidingSpotPosition;
+
         private bool isUnderBed;
+
+        [Header("Keys")]
+
+        [SerializeField] private bool hasDrawerKey;
+        [SerializeField] private bool hasFrontDoorKey;
+        [SerializeField] private bool hasBackDoorKey;
 
         // Use this for initialization
         private void Start()
@@ -360,6 +364,28 @@ namespace UnityStandardAssets.Characters.FirstPerson
                         door.Interact();
                     }
                 }
+                #endregion
+
+                #region drawer interactions
+
+                if(hit.transform.GetComponent<Drawer>())
+                {
+                    Drawer drawer = hit.transform.GetComponent<Drawer>();
+                    if(drawer.IsLocked)
+                    {
+                        if(hasDrawerKey)
+                        {
+                            drawer.Interact();
+                            // consume drawer key.
+                            hasDrawerKey = false;
+                        }
+                    }
+                    else
+                    {
+                        drawer.Interact();
+                    }
+                }
+
                 #endregion
 
                 #region item interactions
