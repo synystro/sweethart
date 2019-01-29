@@ -390,17 +390,20 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
                 #region item interactions
 
-                if (hit.transform.GetComponent<ItemBox>())
+                if (hit.transform.GetComponent<Item>())
                 {
-                    ItemBox itemBox = hit.transform.GetComponent<ItemBox>();
+                    Item item = hit.transform.GetComponent<Item>();
 
-                    switch(itemBox.ItemName)
+                    switch(item.ItemName)
                     {
                         case "KeyFrontDoor":
                             hasFrontDoorKey = true;
                             break;
                         case "KeyBackDoor":
                             hasBackDoorKey = true;
+                            break;
+                        case "":
+                            Debug.Log("No item");
                             break;
                     }
 
