@@ -14,6 +14,7 @@ public class ItemManager : MonoBehaviour
     private GameObject[] itemBoxes;
     private GameObject randomizedItemBox;
     private int randomItemBox;
+    private int nOfItems;
 
     private void Start()
     {
@@ -22,7 +23,20 @@ public class ItemManager : MonoBehaviour
         // find item boxes.
         itemBoxes = GameObject.FindGameObjectsWithTag("ItemBox");
 
-        for (int i = 0; i < itemBoxes.Length; i++)
+        if(itemBoxes.Length > itemNames.Length)
+        {
+            nOfItems = itemBoxes.Length - itemNames.Length;
+#if UNITY_EDITOR
+            // number of items less than item (spawn) boxes
+            Debug.Log("Number of items is less than item boxes. Items: " + itemNames.Length + " SpawnBoxes: " + itemBoxes.Length);
+#endif
+        }
+        else
+        {
+            nOfItems = itemBoxes.Length;
+        }
+
+        for (int i = 0; i < nOfItems; i++)
         {
             Item itemBox = itemBoxes[i].GetComponent<Item>();
             itemBox.ItemName = itemNames[i];

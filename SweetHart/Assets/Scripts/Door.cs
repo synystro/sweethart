@@ -8,21 +8,21 @@ public class Door : MonoBehaviour
 
     //public UnityStandardAssets.Characters.FirstPerson.FirstPersonController player;
 
-    [SerializeField] private string doorID;
-    [SerializeField] private bool opensInwards;
-    [SerializeField] private float openingSpeed;
-    [SerializeField] private bool isLocked;
-    [SerializeField] private bool isOpen;
+    [SerializeField] protected string doorID;
+    [SerializeField] protected bool opensInwards;
+    [SerializeField] protected float openingSpeed;
+    [SerializeField] protected bool isLocked;
+    [SerializeField] protected bool isOpen;
 
-    private FirstPersonController player;
-    private float targetAngle;
+    protected FirstPersonController player;
+    protected float targetAngle;
 
     public string DoorID { get { return doorID; } }
     public bool IsLocked { get { return isLocked; } }
 
     void Start()
     {
-        player = GameObject.FindWithTag("Player").GetComponent<FirstPersonController>();
+        //player = GameObject.FindWithTag("Player").GetComponent<FirstPersonController>();
         OpenClose();
     }
 
