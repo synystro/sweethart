@@ -64,6 +64,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private bool hasDrawerKey;
         [SerializeField] private bool hasFrontDoorKey;
         [SerializeField] private bool hasBackDoorKey;
+        [SerializeField] private bool hasLandryBasementKey;
 
         // Use this for initialization
         private void Start()
@@ -92,9 +93,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
             Debug.DrawRay(m_Camera.transform.position, m_Camera.transform.forward * interactDistance, Color.green);
 #endif
 
-            if (Input.GetKeyDown(interactKey))
+            if(Input.GetKeyDown(interactKey))
             {
-                if (!isUnderBed)
+                if(!isUnderBed)
                 {
                     InteractionCheck();
                 }
@@ -102,15 +103,15 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
             RotateView();
             // the jump state needs to read here to make sure it is not missed
-            if (!m_Jump)
+            if(!m_Jump)
             {
-                if (jumpEnabled)
+                if(jumpEnabled)
                 {
                     m_Jump = CrossPlatformInputManager.GetButtonDown("Jump");
                 }
             }
 
-            if (Input.GetButton("Crouch"))
+            if(Input.GetButton("Crouch"))
             {
                 m_CharacterController.height = 0.2f;
                 m_WalkSpeed = m_CrouchSpeed;
@@ -123,17 +124,17 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 m_WalkSpeed = initialWalkSpeed;
             }
 
-            if (!m_PreviouslyGrounded && m_CharacterController.isGrounded)
+            if(!m_PreviouslyGrounded && m_CharacterController.isGrounded)
             {
                 StartCoroutine(m_JumpBob.DoBobCycle());
-                if (landingSoundEnabled)
+                if(landingSoundEnabled)
                 {
                     PlayLandingSound();
                 }
                 m_MoveDir.y = 0f;
                 m_Jumping = false;
             }
-            if (!m_CharacterController.isGrounded && !m_Jumping && m_PreviouslyGrounded)
+            if(!m_CharacterController.isGrounded && !m_Jumping && m_PreviouslyGrounded)
             {
                 m_MoveDir.y = 0f;
             }
@@ -152,7 +153,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void FixedUpdate()
         {
-            if (isUnderBed)
+            if(isUnderBed)
             {
                 transform.position = bedHidingSpotPosition;
                 if(Input.GetKeyDown(interactKey))
@@ -184,11 +185,11 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 m_MoveDir.z = desiredMove.z * speed;
 
 
-                if (m_CharacterController.isGrounded)
+                if(m_CharacterController.isGrounded)
                 {
                     m_MoveDir.y = -m_StickToGroundForce;
 
-                    if (m_Jump)
+                    if(m_Jump)
                     {
                         m_MoveDir.y = m_JumpSpeed;
                         PlayJumpSound();
@@ -219,13 +220,13 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void ProgressStepCycle(float speed)
         {
-            if (m_CharacterController.velocity.sqrMagnitude > 0 && (m_Input.x != 0 || m_Input.y != 0))
+            if(m_CharacterController.velocity.sqrMagnitude > 0 && (m_Input.x != 0 || m_Input.y != 0))
             {
                 m_StepCycle += (m_CharacterController.velocity.magnitude + (speed * (m_IsWalking ? 1f : m_RunstepLenghten))) *
                              Time.fixedDeltaTime;
             }
 
-            if (!(m_StepCycle > m_NextStep))
+            if(!(m_StepCycle > m_NextStep))
             {
                 return;
             }
@@ -238,7 +239,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void PlayFootStepAudio()
         {
-            if (!m_CharacterController.isGrounded || m_IsWalking)
+            if(!m_CharacterController.isGrounded || m_IsWalking)
             {
                 return;
             }
@@ -256,11 +257,11 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private void UpdateCameraPosition(float speed)
         {
             Vector3 newCameraPosition;
-            if (!m_UseHeadBob)
+            if(!m_UseHeadBob)
             {
                 return;
             }
-            if (m_CharacterController.velocity.magnitude > 0 && m_CharacterController.isGrounded)
+            if(m_CharacterController.velocity.magnitude > 0 && m_CharacterController.isGrounded)
             {
                 m_Camera.transform.localPosition =
                     m_HeadBob.DoHeadBob(m_CharacterController.velocity.magnitude +
@@ -295,14 +296,14 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_Input = new Vector2(horizontal, vertical);
 
             // normalize input if it exceeds 1 in combined length:
-            if (m_Input.sqrMagnitude > 1)
+            if(m_Input.sqrMagnitude > 1)
             {
                 m_Input.Normalize();
             }
 
             // handle speed change to give an fov kick
             // only if the player is going to a run, is running and the fovkick is to be used
-            if (m_IsWalking != waswalking && m_UseFovKick && m_CharacterController.velocity.sqrMagnitude > 0)
+            if(m_IsWalking != waswalking && m_UseFovKick && m_CharacterController.velocity.sqrMagnitude > 0)
             {
                 StopAllCoroutines();
                 StartCoroutine(!m_IsWalking ? m_FovKick.FOVKickUp() : m_FovKick.FOVKickDown());
@@ -320,12 +321,12 @@ namespace UnityStandardAssets.Characters.FirstPerson
         {
             Rigidbody body = hit.collider.attachedRigidbody;
             //dont move the rigidbody if the character is on top of it
-            if (m_CollisionFlags == CollisionFlags.Below)
+            if(m_CollisionFlags == CollisionFlags.Below)
             {
                 return;
             }
 
-            if (body == null || body.isKinematic)
+            if(body == null || body.isKinematic)
             {
                 return;
             }
@@ -335,35 +336,38 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private void InteractionCheck()
         {
             RaycastHit hit;
-            if (Physics.Raycast(m_Camera.transform.position, m_Camera.transform.forward, out hit, interactDistance))
+            if(Physics.Raycast(m_Camera.transform.position, m_Camera.transform.forward, out hit, interactDistance))
             {
 
                 #region door interactions
-                if (hit.transform.GetComponent<Door>())
+
+                if(hit.transform.GetComponent<Door>())
                 {
                     Door door = hit.transform.GetComponent<Door>();
 
-                    if (door.IsLocked)
+                    if(door.IsLocked)
                     {
-                        switch (door.DoorID)
+                        switch(door.DoorID)
                         {
                             case "FrontDoor":
-                                if (hasFrontDoorKey) { door.Interact(); } else { door.Locked(); }
+                                if(hasFrontDoorKey) { door.Interact(); } else { door.Locked(); }
                                 break;
 
                             case "BackDoor":
-                                if (hasBackDoorKey) { door.Interact(); } else { door.Locked(); }
+                                if(hasBackDoorKey) { door.Interact(); } else { door.Locked(); }
+                                break;
+                            case "LaundryBasement":
+                                if(hasLandryBasementKey) { door.Interact(); } else { door.Locked(); }
                                 break;
                             default:
-                                Debug.Log("Unknow door.");
+                                Debug.Log("Unknown door.");
                                 break;
                         }
                     }
                     else
-                    {
-                        door.Interact();
-                    }
+                    { door.Interact(); }
                 }
+
                 #endregion
 
                 #region drawer interactions
@@ -390,7 +394,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
                 #region item interactions
 
-                if (hit.transform.GetComponent<Item>())
+                if(hit.transform.GetComponent<Item>())
                 {
                     Item item = hit.transform.GetComponent<Item>();
 

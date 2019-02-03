@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityStandardAssets.Characters.FirstPerson;
@@ -35,11 +35,13 @@ public class Door : MonoBehaviour
     public void Interact()
     {
         isOpen = !isOpen;
-        OpenClose();            
+        OpenClose();
+        Debug.Log(targetAngle);
     }
 
-    private void OpenClose()
+    protected void OpenClose()
     {
+        Debug.Log("Called once");
         if (isOpen)
         {
             if (opensInwards) targetAngle = -90f;
