@@ -35,6 +35,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private bool jumpEnabled; // when checked enables jumping.
         [SerializeField] private bool landingSoundEnabled; // when checked enables landing sound.
         [SerializeField] private KeyCode interactKey; // interaction key.
+        [SerializeField] private KeyCode flashlightKey; // flashlight key.
 
         [Header("Bed")]
         [SerializeField] private float height;
@@ -57,6 +58,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private Vector3 lastPosition;
         private Vector3 bedHidingSpotPosition;
 
+        private Light flashlight;
+
         private bool isUnderBed;
 
         [Header("Keys")]
@@ -69,8 +72,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
         // Use this for initialization
         private void Start()
         {
-            height = transform.localScale.y;
-
             m_WalkSpeed = initialWalkSpeed;
             m_CharacterController = GetComponent<CharacterController>();
             m_Camera = Camera.main;
@@ -82,6 +83,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_Jumping = false;
             m_AudioSource = GetComponent<AudioSource>();
             m_MouseLook.Init(transform, m_Camera.transform);
+
+            flashlight = m_Camera.GetComponent<Light>();
+            height = transform.localScale.y;
         }
 
 
@@ -93,12 +97,15 @@ namespace UnityStandardAssets.Characters.FirstPerson
             Debug.DrawRay(m_Camera.transform.position, m_Camera.transform.forward * interactDistance, Color.green);
 #endif
 
-            if(Input.GetKeyDown(interactKey))
-            {
+            if(Input.GetKeyDown(interactKey)) {
                 if(!isUnderBed)
                 {
                     InteractionCheck();
                 }
+            }
+
+            if(Input.GetKeyDown(flashlightKey)) {
+                flashlight.enabled = !flashlight.enabled;
             }
 
             RotateView();
