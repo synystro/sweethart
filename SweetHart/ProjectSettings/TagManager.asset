@@ -7,6 +7,7 @@ TagManager:
   - ItemSpawn
   - ItemBox
   - Item
+  - Hart
   layers:
   - Default
   - TransparentFX

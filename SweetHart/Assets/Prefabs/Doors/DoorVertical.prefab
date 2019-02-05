@@ -102,6 +102,7 @@ GameObject:
   - component: {fileID: 2707791752490940353}
   - component: {fileID: 2707791752490940382}
   - component: {fileID: 2707791752490940383}
+  - component: {fileID: 6758563541607133535}
   m_Layer: 0
   m_Name: DoorVertical
   m_TagString: Untagged
@@ -155,6 +156,22 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 2, z: 0.2}
   m_Center: {x: 0.5, y: 1, z: 0}
+--- !u!208 &6758563541607133535
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2707791752490940352}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 0.1, y: 1, z: 0.5}
+  m_MoveThreshold: 0.1
+  m_Carve: 0
+  m_CarveOnlyStationary: 1
+  m_Center: {x: 0, y: 1, z: 0.5}
+  m_TimeToStationary: 0.5
 --- !u!1 &2707791753578035356
 GameObject:
   m_ObjectHideFlags: 0

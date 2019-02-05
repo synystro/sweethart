@@ -36,12 +36,10 @@ public class Door : MonoBehaviour
     {
         isOpen = !isOpen;
         OpenClose();
-        Debug.Log(targetAngle);
     }
 
     protected void OpenClose()
     {
-        Debug.Log("Called once");
         if (isOpen)
         {
             if (opensInwards) targetAngle = -90f;

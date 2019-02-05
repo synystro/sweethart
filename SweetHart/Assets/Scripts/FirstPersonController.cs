@@ -55,12 +55,17 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private float m_NextStep;
         private AudioSource m_AudioSource;
 
+        private GameObject hart;
+        private Quaternion spinToHart;
+
         private Vector3 lastPosition;
         private Vector3 bedHidingSpotPosition;
 
         private Light flashlight;
 
-        private bool isUnderBed;
+        [Header("Player Status")]
+        [SerializeField] private bool isCaught;
+        [SerializeField] private bool isUnderBed;
 
         [Header("Keys")]
 
@@ -68,6 +73,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private bool hasFrontDoorKey;
         [SerializeField] private bool hasBackDoorKey;
         [SerializeField] private bool hasLandryBasementKey;
+
+        public Quaternion SpinToHart { set { spinToHart = value; } }
+        public bool IsCaught { get { return isCaught; } set { isCaught = value; } }
 
         // Use this for initialization
         private void Start()
@@ -84,6 +92,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_AudioSource = GetComponent<AudioSource>();
             m_MouseLook.Init(transform, m_Camera.transform);
 
+            hart = GameObject.FindGameObjectWithTag("Hart");
             flashlight = m_Camera.GetComponent<Light>();
             height = transform.localScale.y;
         }
@@ -108,7 +117,10 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 flashlight.enabled = !flashlight.enabled;
             }
 
-            RotateView();
+            if(!isCaught) {
+                RotateView();
+            }
+
             // the jump state needs to read here to make sure it is not missed
             if(!m_Jump)
             {
@@ -147,6 +159,11 @@ namespace UnityStandardAssets.Characters.FirstPerson
             }
 
             m_PreviouslyGrounded = m_CharacterController.isGrounded;
+
+            // rotate to Hart.
+            if(isCaught) {
+                LookAtHart();
+            }
         }
 
 
@@ -160,63 +177,61 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void FixedUpdate()
         {
-            if(isUnderBed)
-            {
-                transform.position = bedHidingSpotPosition;
-                if(Input.GetKeyDown(interactKey))
-                {
-                    // get out of bed.
-                    transform.position = lastPosition;
-                    isUnderBed = !isUnderBed;
-                    //change height to get out of bed.
-                    transform.localScale = new Vector3(
-                        transform.localScale.x,
-                        height,
-                        transform.localScale.z);
-                }
+            if(isCaught) {
+
             }
-            else
-            {
-                float speed;
-                GetInput(out speed);
-                // always move along the camera forward as it is the direction that it being aimed at
-                Vector3 desiredMove = transform.forward * m_Input.y + transform.right * m_Input.x;
-
-                // get a normal for the surface that is being touched to move along it
-                RaycastHit hitInfo;
-                Physics.SphereCast(transform.position, m_CharacterController.radius, Vector3.down, out hitInfo,
-                                   m_CharacterController.height / 2f, Physics.AllLayers, QueryTriggerInteraction.Ignore);
-                desiredMove = Vector3.ProjectOnPlane(desiredMove, hitInfo.normal).normalized;
-
-                m_MoveDir.x = desiredMove.x * speed;
-                m_MoveDir.z = desiredMove.z * speed;
-
-
-                if(m_CharacterController.isGrounded)
-                {
-                    m_MoveDir.y = -m_StickToGroundForce;
-
-                    if(m_Jump)
-                    {
-                        m_MoveDir.y = m_JumpSpeed;
-                        PlayJumpSound();
-                        m_Jump = false;
-                        m_Jumping = true;
+            else {
+                if(isUnderBed) {
+                    transform.position = bedHidingSpotPosition;
+                    if(Input.GetKeyDown(interactKey)) {
+                        // get out of bed.
+                        transform.position = lastPosition;
+                        isUnderBed = !isUnderBed;
+                        //change height to get out of bed.
+                        transform.localScale = new Vector3(
+                            transform.localScale.x,
+                            height,
+                            transform.localScale.z);
                     }
                 }
-                else
-                {
-                    m_MoveDir += Physics.gravity * m_GravityMultiplier * Time.fixedDeltaTime;
+                else {
+                    float speed;
+                    GetInput(out speed);
+                    // always move along the camera forward as it is the direction that it being aimed at
+                    Vector3 desiredMove = transform.forward * m_Input.y + transform.right * m_Input.x;
+
+                    // get a normal for the surface that is being touched to move along it
+                    RaycastHit hitInfo;
+                    Physics.SphereCast(transform.position, m_CharacterController.radius, Vector3.down, out hitInfo,
+                                       m_CharacterController.height / 2f, Physics.AllLayers, QueryTriggerInteraction.Ignore);
+                    desiredMove = Vector3.ProjectOnPlane(desiredMove, hitInfo.normal).normalized;
+
+                    m_MoveDir.x = desiredMove.x * speed;
+                    m_MoveDir.z = desiredMove.z * speed;
+
+
+                    if(m_CharacterController.isGrounded) {
+                        m_MoveDir.y = -m_StickToGroundForce;
+
+                        if(m_Jump) {
+                            m_MoveDir.y = m_JumpSpeed;
+                            PlayJumpSound();
+                            m_Jump = false;
+                            m_Jumping = true;
+                        }
+                    }
+                    else {
+                        m_MoveDir += Physics.gravity * m_GravityMultiplier * Time.fixedDeltaTime;
+                    }
+                    m_CollisionFlags = m_CharacterController.Move(m_MoveDir * Time.fixedDeltaTime);
+
+                    ProgressStepCycle(speed);
+                    UpdateCameraPosition(speed);
+
+                    m_MouseLook.UpdateCursorLock();
                 }
-                m_CollisionFlags = m_CharacterController.Move(m_MoveDir * Time.fixedDeltaTime);
-
-                ProgressStepCycle(speed);
-                UpdateCameraPosition(speed);
-
-                m_MouseLook.UpdateCursorLock();
             }
         }
-
 
         private void PlayJumpSound()
         {
@@ -320,9 +335,14 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void RotateView()
         {
-            m_MouseLook.LookRotation(transform, m_Camera.transform);
+                m_MouseLook.LookRotation(transform, m_Camera.transform);
         }
 
+        private void LookAtHart()
+        {
+            Vector3 direction = hart.transform.position - transform.position;
+            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(direction), 5 * Time.deltaTime);
+        }
 
         private void OnControllerColliderHit(ControllerColliderHit hit)
         {

@@ -8,6 +8,7 @@ public class Hart : Spirit
     [SerializeField] private float eyesHeightOffset;
 
     private Vector3 playerLastKnownLocation;
+    private bool caughtPlayer;
 
     NavMeshAgent navMeshAgent;
 
@@ -69,7 +70,12 @@ public class Hart : Spirit
                 target = hit.transform.GetComponent<Player>();
                 playerLastKnownLocation = target.transform.position;
 
-                ChasePlayer();
+                if(!caughtPlayer) {
+                    ChasePlayer();
+                }
+                else {
+                    navMeshAgent.isStopped = true;
+                }
             }
             else
             {
@@ -85,10 +91,11 @@ public class Hart : Spirit
 
     private void OnTriggerEnter(Collider other)
     {
-        if(other.gameObject.tag == "Player")
-        {
-            Debug.Log("PLAYER KILLED");
+        if(!caughtPlayer) {
+            if(other.gameObject.tag == "Player") {
+                other.GetComponent<UnityStandardAssets.Characters.FirstPerson.FirstPersonController>().IsCaught = true;
+                caughtPlayer = true;
+            }
         }
     }
-
 }

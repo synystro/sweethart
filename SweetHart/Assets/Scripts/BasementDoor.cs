@@ -7,7 +7,6 @@ public class BasementDoor : Door
     void Update()
     {
         if(opensInwards) {
-            Debug.Log(targetAngle);
         }
         Quaternion smoothRotation = Quaternion.Lerp(transform.localRotation, Quaternion.Euler(targetAngle, 0, 0), openingSpeed * Time.deltaTime);
         transform.localRotation = smoothRotation;
