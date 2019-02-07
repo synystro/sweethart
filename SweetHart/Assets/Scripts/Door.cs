@@ -5,31 +5,35 @@ using UnityStandardAssets.Characters.FirstPerson;
 
 public class Door : MonoBehaviour
 {
-
-    //public UnityStandardAssets.Characters.FirstPerson.FirstPersonController player;
-
     [SerializeField] protected string doorID;
     [SerializeField] protected bool opensInwards;
     [SerializeField] protected float openingSpeed;
     [SerializeField] protected bool isLocked;
     [SerializeField] protected bool isOpen;
 
-    protected FirstPersonController player;
     protected float targetAngle;
+    protected float closedTimer;
+    protected bool isMoving;
+    protected bool wasRecentlyClosed;
 
     public string DoorID { get { return doorID; } }
+    public bool IsOpen { get { return isOpen; } set { isOpen = value; } }
     public bool IsLocked { get { return isLocked; } }
 
     void Start()
     {
-        //player = GameObject.FindWithTag("Player").GetComponent<FirstPersonController>();
         OpenClose();
     }
 
     void Update()
     {
-        Quaternion smoothRotation = Quaternion.Lerp(transform.localRotation, Quaternion.Euler(0, targetAngle, 0), openingSpeed * Time.deltaTime);
-        transform.localRotation = smoothRotation;
+        if(isMoving) {
+            Quaternion smoothRotation = Quaternion.Lerp(transform.localRotation, Quaternion.Euler(0, targetAngle, 0), openingSpeed * Time.deltaTime);
+            transform.localRotation = smoothRotation;
+            if(transform.localEulerAngles.y == targetAngle) {
+                isMoving = false;
+            }
+        }
     }
 
     public void Interact()
@@ -38,17 +42,16 @@ public class Door : MonoBehaviour
         OpenClose();
     }
 
-    protected void OpenClose()
+    public void OpenClose()
     {
-        if (isOpen)
-        {
+        if (isOpen) {
             if (opensInwards) targetAngle = -90f;
             else targetAngle = 90f;
         }
-        else
-        {
+        else {
             targetAngle = 0f;
         }
+        isMoving = true;
     }
 
     public void Locked()

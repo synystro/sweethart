@@ -6,8 +6,11 @@ using UnityEngine.AI;
 public class Hart : Spirit
 {
     [SerializeField] private float eyesHeightOffset;
+    [SerializeField] private float interactionDistance;
 
     private Vector3 playerLastKnownLocation;
+    private bool isPlayerVisible;
+    private bool isChasingPlayer;
     private bool caughtPlayer;
 
     NavMeshAgent navMeshAgent;
@@ -20,14 +23,14 @@ public class Hart : Spirit
         {
             Debug.LogError("NavMeshAgent component not attached to " + gameObject.name);
         }
-
-
-
     }
+
     void Update()
     {
         //base.Float();
-        SearchForPlayer();
+        if(!caughtPlayer) {
+            SearchForPlayer();
+        } else { navMeshAgent.isStopped = true; }
     }
 
     private void SearchForPlayer()
@@ -66,6 +69,8 @@ public class Hart : Spirit
             if (hit.transform == target.transform)
             {
                 //Debug.Log("visible");
+                isPlayerVisible = true;
+                isChasingPlayer = true;
 
                 target = hit.transform.GetComponent<Player>();
                 playerLastKnownLocation = target.transform.position;
@@ -80,21 +85,39 @@ public class Hart : Spirit
             else
             {
                 //Debug.Log("HIDDEN");
+                isPlayerVisible = false;
             }
         }
     }
 
     private void ChasePlayer()
     {
-            navMeshAgent.SetDestination(playerLastKnownLocation);
+        navMeshAgent.SetDestination(playerLastKnownLocation);
+        if(transform.position == playerLastKnownLocation) {
+            isChasingPlayer = false;
+        }
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void OpenDoor(Collider col)
     {
-        if(!caughtPlayer) {
-            if(other.gameObject.tag == "Player") {
-                other.GetComponent<UnityStandardAssets.Characters.FirstPerson.FirstPersonController>().IsCaught = true;
+            Door door = col.transform.GetComponent<Door>();
+            if(door.IsLocked) { door.Locked(); } else { door.IsOpen = true; door.OpenClose(); }
+    }
+
+    private void OnTriggerEnter(Collider col)
+    {
+        // player collision
+        if(col.gameObject.tag == "Player") {
+            if(!caughtPlayer && isPlayerVisible) {
+                col.GetComponent<UnityStandardAssets.Characters.FirstPerson.FirstPersonController>().IsCaught = true;
                 caughtPlayer = true;
+            }
+        }
+
+        // door collision
+        if(isChasingPlayer) {
+            if(col.transform.GetComponent<Door>() && !isPlayerVisible) {
+                OpenDoor(col);
             }
         }
     }
