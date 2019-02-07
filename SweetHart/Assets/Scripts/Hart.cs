@@ -12,6 +12,7 @@ public class Hart : Spirit
     private bool isPlayerVisible;
     private bool isChasingPlayer;
     private bool caughtPlayer;
+    private Door door;
 
     NavMeshAgent navMeshAgent;
 
@@ -66,9 +67,8 @@ public class Hart : Spirit
         RaycastHit hit;
         if (Physics.Raycast(sightPosition, (target.transform.position - transform.position), out hit))
         {
-            if (hit.transform == target.transform)
+            if (hit.transform.gameObject == target.transform.gameObject)
             {
-                //Debug.Log("visible");
                 isPlayerVisible = true;
                 isChasingPlayer = true;
 
@@ -76,6 +76,7 @@ public class Hart : Spirit
                 playerLastKnownLocation = target.transform.position;
 
                 if(!caughtPlayer) {
+                    navMeshAgent.isStopped = false;
                     ChasePlayer();
                 }
                 else {
@@ -84,7 +85,6 @@ public class Hart : Spirit
             }
             else
             {
-                //Debug.Log("HIDDEN");
                 isPlayerVisible = false;
             }
         }
@@ -111,13 +111,24 @@ public class Hart : Spirit
             if(!caughtPlayer && isPlayerVisible) {
                 col.GetComponent<UnityStandardAssets.Characters.FirstPerson.FirstPersonController>().IsCaught = true;
                 caughtPlayer = true;
+                GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
             }
         }
 
         // door collision
         if(isChasingPlayer) {
-            if(col.transform.GetComponent<Door>() && !isPlayerVisible) {
-                OpenDoor(col);
+            if(col.transform.GetComponent<Door>()) {
+                door = col.transform.GetComponent<Door>();
+                if(door && !isPlayerVisible) {
+
+                    OpenDoor(col);
+
+                    if(!door.IsCompletelyOpen) {
+                        navMeshAgent.isStopped = true;
+                    } else {
+                        navMeshAgent.isStopped = false;
+                    }
+                }
             }
         }
     }

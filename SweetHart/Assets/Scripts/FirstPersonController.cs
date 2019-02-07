@@ -39,6 +39,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         [Header("Bed")]
         [SerializeField] private float height;
+        [SerializeField] private float crouchHeight;
         [SerializeField] private float underBedHeight;
 
         private Camera m_Camera;
@@ -130,11 +131,11 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 }
             }
 
-            if(Input.GetButton("Crouch"))
+            if(Input.GetButton("Crouch") && !IsCaught)
             {
-                m_CharacterController.height = 0.2f;
+                //m_CharacterController.height = 0.2f;
                 m_WalkSpeed = m_CrouchSpeed;
-                m_Camera.transform.localPosition = new Vector3(0, 0.3f, 0);
+                m_Camera.transform.localPosition = new Vector3(0, crouchHeight, 0);
 
             }
             else
@@ -178,7 +179,11 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private void FixedUpdate()
         {
             if(isCaught) {
-
+                //change height to stand up.
+                transform.localScale = new Vector3(
+                    transform.localScale.x,
+                    height,
+                    transform.localScale.z);
             }
             else {
                 if(isUnderBed) {
@@ -342,6 +347,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         {
             Vector3 direction = hart.transform.position - transform.position;
             transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(direction), 5 * Time.deltaTime);
+            m_Camera.transform.rotation = new Quaternion(0f, 0f, 0f, 0);
         }
 
         private void OnControllerColliderHit(ControllerColliderHit hit)
