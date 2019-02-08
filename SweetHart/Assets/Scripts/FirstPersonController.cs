@@ -369,6 +369,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private void InteractionCheck()
         {
             RaycastHit hit;
+
             if(Physics.Raycast(m_Camera.transform.position, m_Camera.transform.forward, out hit, interactDistance))
             {
 
@@ -469,6 +470,10 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 }
 
                 #endregion
+
+                if(hit.transform.gameObject != null) {
+                    Debug.Log(hit.transform.name);
+                } else { Debug.Log("NULL"); }
 
             }
         }
