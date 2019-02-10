@@ -369,8 +369,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private void InteractionCheck()
         {
             RaycastHit hit;
-
-            if(Physics.Raycast(m_Camera.transform.position, m_Camera.transform.forward, out hit, interactDistance))
+            int layerMask = 1 << 9;
+            layerMask = ~layerMask;
+            if(Physics.Raycast(m_Camera.transform.position, m_Camera.transform.forward, out hit, interactDistance, layerMask))
             {
 
                 #region door interactions
@@ -470,10 +471,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 }
 
                 #endregion
-
-                if(hit.transform.gameObject != null) {
-                    Debug.Log(hit.transform.name);
-                } else { Debug.Log("NULL"); }
 
             }
         }
