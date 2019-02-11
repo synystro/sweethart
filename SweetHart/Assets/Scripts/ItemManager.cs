@@ -5,13 +5,13 @@ using System;
 
 public class ItemManager : MonoBehaviour
 {
+    [Header("Keys")]
+    [SerializeField] private string[] keyNames;
+
     [Header("Items")]
     [SerializeField] private string[] itemNames;
 
-    [Header("Spawned?")]
-    [SerializeField] private bool backDoorKeySpawned;
-
-    private GameObject[] itemBoxes;
+    private GameObject[] keyBoxes;
     private GameObject randomizedItemBox;
     private int randomItemBox;
     private int nOfItems;
@@ -19,34 +19,54 @@ public class ItemManager : MonoBehaviour
     private void Start()
     {
         // shuffle items.
-        ShuffleArray(itemNames);
+        ShuffleArray(keyNames, 0);
         // find item boxes.
-        itemBoxes = GameObject.FindGameObjectsWithTag("ItemBox");
+        keyBoxes = GameObject.FindGameObjectsWithTag("KeyBox");
 
-        if(itemBoxes.Length > itemNames.Length)
+        if(keyBoxes.Length > keyNames.Length)
         {
-            nOfItems = itemBoxes.Length - itemNames.Length;
+            nOfItems = keyBoxes.Length - keyNames.Length;
 #if UNITY_EDITOR
             // number of items less than item (spawn) boxes
-            Debug.Log("Number of items is less than item boxes. Items: " + itemNames.Length + " SpawnBoxes: " + itemBoxes.Length);
+            Debug.Log("Number of items is less than item boxes. Items: " + keyNames.Length + " SpawnBoxes: " + keyBoxes.Length);
 #endif
         }
         else
         {
-            nOfItems = itemBoxes.Length;
+            nOfItems = keyBoxes.Length;
         }
 
-        for (int i = 0; i < nOfItems; i++)
-        {
-            Item itemBox = itemBoxes[i].GetComponent<Item>();
-            itemBox.ItemName = itemNames[i];
-            itemBoxes[i].tag = "Item";
+        for(int i = 0; i < nOfItems; i++) {
+            Item itemBox = keyBoxes[i].GetComponent<Item>();
+
+            if(keyNames[i].Contains(itemBox.gameObject.transform.name)) {
+                while(keyNames[i].Contains(itemBox.gameObject.transform.name)) {                 
+                    if(i < nOfItems - 1) {
+                        ShuffleArray(keyNames, i);
+                    }
+                    else {
+                        // if last then swap with first itemBox.
+                        string swapName = keyNames[i];
+                        keyNames[0] = keyNames[i];
+                        keyNames[i] = keyBoxes[0].GetComponent<Item>().ItemName;
+                        keyBoxes[0].GetComponent<Item>().ItemName = swapName;
+                        keyBoxes[i].tag = "Key";
+                        break;
+                    }
+                }
+                itemBox.ItemName = keyNames[i];
+                keyBoxes[i].tag = "Key";
+            }
+            else {
+                itemBox.ItemName = keyNames[i];
+                keyBoxes[i].tag = "Key";
+            }
         }
     }
 
-    private void ShuffleArray(string[] texts)
+    private void ShuffleArray(string[] texts, int i)
     {
-        for(int i = 0; i < texts.Length; i++)
+        for(; i < texts.Length; i++)
         {
             string tmp = texts[i];
             int r = UnityEngine.Random.Range(i, texts.Length);

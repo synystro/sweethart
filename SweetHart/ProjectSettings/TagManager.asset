@@ -8,6 +8,8 @@ TagManager:
   - ItemBox
   - Item
   - Hart
+  - KeyBox
+  - Key
   layers:
   - Default
   - TransparentFX
