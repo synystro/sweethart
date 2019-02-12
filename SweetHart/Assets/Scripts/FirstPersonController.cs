@@ -12,6 +12,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
     public class FirstPersonController : MonoBehaviour
     {
         [SerializeField] private bool m_IsWalking;
+        [SerializeField] private bool m_IsRunning;
         [SerializeField] private float initialWalkSpeed;
         [SerializeField] private float m_WalkSpeed;
         [SerializeField] private float m_CrouchSpeed;
@@ -27,6 +28,13 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private FOVKick m_FovKick = new FOVKick();
         [SerializeField] private bool m_UseHeadBob;
         [SerializeField] private CurveControlledBob m_HeadBob = new CurveControlledBob();
+        [SerializeField] private float highBobRange;
+        [SerializeField] private float lowBobRange;
+        [SerializeField] private float walkVHRatio;
+        [SerializeField] private float runVHRatio;
+        [SerializeField] private float walkHVRatio;
+        [SerializeField] private float runHVRatio;
+        [SerializeField] private float crouchVHRatio;
         [SerializeField] private LerpControlledBob m_JumpBob = new LerpControlledBob();
         [SerializeField] private float m_StepInterval;
         [SerializeField] private AudioClip[] m_FootstepSounds;    // an array of footstep sounds that will be randomly selected from.
@@ -67,6 +75,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [Header("Player Status")]
         [SerializeField] private bool isCaught;
         [SerializeField] private bool isUnderBed;
+        [SerializeField] private bool isCrouching;
 
         [Header("Keys")]
 
@@ -77,6 +86,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         public Quaternion SpinToHart { set { spinToHart = value; } }
         public bool IsCaught { get { return isCaught; } set { isCaught = value; } }
+        public bool M_IsRunning { get { return m_IsRunning; } set { m_IsRunning = value; } }
 
         // Use this for initialization
         private void Start()
@@ -125,23 +135,23 @@ namespace UnityStandardAssets.Characters.FirstPerson
             // the jump state needs to read here to make sure it is not missed
             if(!m_Jump)
             {
-                if(jumpEnabled)
-                {
+                if(jumpEnabled) {
                     m_Jump = CrossPlatformInputManager.GetButtonDown("Jump");
                 }
             }
 
-            if(Input.GetButton("Crouch") && !IsCaught)
-            {
-                //m_CharacterController.height = 0.2f;
-                m_WalkSpeed = m_CrouchSpeed;
-                m_Camera.transform.localPosition = new Vector3(0, crouchHeight, 0);
-
-            }
-            else
-            {
-                m_CharacterController.height = 1.5f;
-                m_WalkSpeed = initialWalkSpeed;
+            if(Input.GetButtonDown("Crouch") && !IsCaught) {
+                isCrouching = !isCrouching;
+                if(isCrouching) {
+                    m_CharacterController.height = crouchHeight;
+                    m_WalkSpeed = m_CrouchSpeed;
+                    //m_Camera.transform.localPosition = new Vector3(0, crouchHeight, 0);
+                }
+                else {
+                    m_CharacterController.height = height;
+                    m_WalkSpeed = initialWalkSpeed;
+                    //m_Camera.transform.localPosition = new Vector3(0, height, 0);
+                }
             }
 
             if(!m_PreviouslyGrounded && m_CharacterController.isGrounded)
@@ -229,6 +239,14 @@ namespace UnityStandardAssets.Characters.FirstPerson
                         m_MoveDir += Physics.gravity * m_GravityMultiplier * Time.fixedDeltaTime;
                     }
                     m_CollisionFlags = m_CharacterController.Move(m_MoveDir * Time.fixedDeltaTime);
+
+                    if(isCrouching) {
+                        m_Camera.transform.localPosition = new Vector3(0, crouchHeight, 0);
+                    }
+                    else {
+                        m_Camera.transform.localPosition = new Vector3(0, height, 0);
+                        
+                    }
 
                     ProgressStepCycle(speed);
                     UpdateCameraPosition(speed);
@@ -319,7 +337,23 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_IsWalking = !Input.GetKey(KeyCode.LeftShift);
 #endif
             // set the desired speed to be walking or running
-            speed = m_IsWalking ? m_WalkSpeed : m_RunSpeed;
+            //speed = m_IsWalking ? m_WalkSpeed : m_RunSpeed;
+
+            if(m_IsWalking) {
+                speed = m_WalkSpeed;
+                m_HeadBob.VerticaltoHorizontalRatio = walkVHRatio;
+                m_HeadBob.HorizontaltoVerticalRatio = walkHVRatio;
+                m_HeadBob.SetHorizontalBobRange = highBobRange;
+                m_HeadBob.SetVerticalBobRange = lowBobRange;
+            }
+            else {
+                speed = m_RunSpeed;
+                m_HeadBob.VerticaltoHorizontalRatio = runVHRatio;
+                m_HeadBob.HorizontaltoVerticalRatio = runHVRatio;
+                m_HeadBob.SetHorizontalBobRange = highBobRange;
+                m_HeadBob.SetVerticalBobRange = highBobRange;
+            }
+
             m_Input = new Vector2(horizontal, vertical);
 
             // normalize input if it exceeds 1 in combined length:
