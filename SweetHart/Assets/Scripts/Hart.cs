@@ -5,6 +5,8 @@ using UnityEngine.AI;
 
 public class Hart : Spirit
 {
+    Grid grid;
+
     [SerializeField] private float eyesHeightOffset;
     [SerializeField] private float interactionDistance;
 
@@ -14,16 +16,9 @@ public class Hart : Spirit
     private bool caughtPlayer;
     private Door door;
 
-    NavMeshAgent navMeshAgent;
-
     void Start()
     {
-        navMeshAgent = this.GetComponent<NavMeshAgent>();
-
-        if(navMeshAgent == null)
-        {
-            Debug.LogError("NavMeshAgent component not attached to " + gameObject.name);
-        }
+        grid = GetComponent<Grid>();
     }
 
     void Update()
@@ -31,89 +26,84 @@ public class Hart : Spirit
         //base.Float();
         if(!caughtPlayer) {
             SearchForPlayer();
-        } else { navMeshAgent.isStopped = true; }
+        } else { //TODO: stop hart. }
+        }
     }
 
-    private void SearchForPlayer()
-    {
-        // look for player in chasingRange.
-        if (target == null)
+        private void SearchForPlayer()
         {
-            RaycastHit[] hits = Physics.SphereCastAll(transform.position, chasingRange / 2, Vector3.down);
-            foreach (RaycastHit hit in hits)
-                if (hit.transform.GetComponent<Player>() != null)
-                {
+            // look for player in chasingRange.
+            if(target == null) {
+                RaycastHit[] hits = Physics.SphereCastAll(transform.position, chasingRange / 2, Vector3.down);
+                foreach(RaycastHit hit in hits)
+                    if(hit.transform.GetComponent<Player>() != null) {
+                        target = hit.transform.GetComponent<Player>();
+                        CheckIfPlayerVisible();
+                    }
+            }
+            // check if player isn't behind any obstacle
+            if(target != null) {
+                CheckIfPlayerVisible();
+            }
+        }
+
+        private void CheckIfPlayerVisible()
+        {
+            Vector3 sightPosition = new Vector3(
+                transform.position.x,
+                transform.position.y + eyesHeightOffset,
+                transform.position.z
+                );
+
+            Debug.DrawRay(sightPosition, (target.transform.position - transform.position), Color.green);
+
+            RaycastHit hit;
+            if(Physics.Raycast(sightPosition, (target.transform.position - transform.position), out hit)) {
+                if(hit.transform.gameObject == target.transform.gameObject) {
+                    isPlayerVisible = true;
+                    isChasingPlayer = true;
+
                     target = hit.transform.GetComponent<Player>();
-                    CheckIfPlayerVisible();
-                }
-        }
-        // check if player isn't behind any obstacle
-        if (target != null)
-        {
-            CheckIfPlayerVisible();
-        }
-    }
+                    playerLastKnownLocation = target.transform.position;
 
-    private void CheckIfPlayerVisible()
-    {
-        Vector3 sightPosition = new Vector3(
-            transform.position.x,
-            transform.position.y + eyesHeightOffset,
-            transform.position.z            
-            );
-
-        Debug.DrawRay(sightPosition, (target.transform.position - transform.position), Color.green);
-
-        RaycastHit hit;
-        if (Physics.Raycast(sightPosition, (target.transform.position - transform.position), out hit))
-        {
-            if (hit.transform.gameObject == target.transform.gameObject)
-            {
-                isPlayerVisible = true;
-                isChasingPlayer = true;
-
-                target = hit.transform.GetComponent<Player>();
-                playerLastKnownLocation = target.transform.position;
-
-                if(!caughtPlayer) {
-                    navMeshAgent.isStopped = false;
-                    ChasePlayer();
+                    if(!caughtPlayer) {
+                        ChasePlayer();
+                    }
+                    else {
+                        //TODO stop hart.
+                    }
                 }
                 else {
-                    navMeshAgent.isStopped = true;
+                    isPlayerVisible = false;
                 }
             }
-            else
-            {
-                isPlayerVisible = false;
+        }
+
+        private void ChasePlayer()
+        {
+        //transform.position = Vector3.MoveTowards(transform.position, playerLastKnownLocation, chasingSpeed * Time.deltaTime);
+            if(transform.position == playerLastKnownLocation) {
+                isChasingPlayer = false;
+                //TODO: patrol mode.
             }
         }
-    }
 
-    private void ChasePlayer()
-    {
-        navMeshAgent.SetDestination(playerLastKnownLocation);
-        if(transform.position == playerLastKnownLocation) {
-            isChasingPlayer = false;
-        }
-    }
-
-    private void OpenDoor(Collider col)
-    {
+        private void OpenDoor(Collider col)
+        {
             Door door = col.transform.GetComponent<Door>();
             if(door.IsLocked) { door.Locked(); } else { door.IsOpen = true; door.OpenClose(); }
-    }
-
-    private void OnTriggerEnter(Collider col)
-    {
-        // player collision
-        if(col.gameObject.tag == "Player") {
-            if(!caughtPlayer && isPlayerVisible) {
-                col.GetComponent<UnityStandardAssets.Characters.FirstPerson.FirstPersonController>().IsCaught = true;
-                caughtPlayer = true;
-                GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
-            }
         }
+
+        private void OnTriggerEnter(Collider col)
+        {
+            // player collision
+            if(col.gameObject.tag == "Player") {
+                if(!caughtPlayer && isPlayerVisible) {
+                    col.GetComponent<UnityStandardAssets.Characters.FirstPerson.FirstPersonController>().IsCaught = true;
+                    caughtPlayer = true;
+                    GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
+                }
+            }
 
         // door collision
         if(isChasingPlayer) {
@@ -124,9 +114,10 @@ public class Hart : Spirit
                     OpenDoor(col);
 
                     if(!door.IsCompletelyOpen) {
-                        navMeshAgent.isStopped = true;
-                    } else {
-                        navMeshAgent.isStopped = false;
+                        //TODO: move hart.
+                    }
+                    else {
+                        //TODO: stop hart.
                     }
                 }
             }
