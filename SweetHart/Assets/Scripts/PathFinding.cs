@@ -1,12 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+//using System.Diagnostics;
 
 public class PathFinding : MonoBehaviour
 {
     Grid grid;
     public Transform startPosition;
     public Transform targetPosition;
+
+    public List<Node> FinalPath;
 
     private void Awake()
     {
@@ -20,6 +23,9 @@ public class PathFinding : MonoBehaviour
 
     void FindPath(Vector3 _startPosition, Vector3 _targetPosition)
     {
+        //Stopwatch sw = new Stopwatch();
+        //sw.Start();
+
         Node startNode = grid.NodeFromWorldPosition(_startPosition);
         Node targetNode = grid.NodeFromWorldPosition(_targetPosition);
 
@@ -39,6 +45,8 @@ public class PathFinding : MonoBehaviour
             ClosedList.Add(currentNode);
 
             if(currentNode == targetNode) {
+                //sw.Stop();
+                //print("Path found in " + sw.ElapsedMilliseconds + " ms");
                 GetFinalPath(startNode, targetNode);
                 break;
             }
@@ -66,13 +74,16 @@ public class PathFinding : MonoBehaviour
 
     void GetFinalPath(Node _startNode, Node _endNode)
     {
-        List<Node> FinalPath = new List<Node>();
+        //List<Node> FinalPath = new List<Node>();
+        FinalPath = new List<Node>();
+
         Node currentNode = _endNode;
 
         while(currentNode != _startNode) {
             FinalPath.Add(currentNode);
             currentNode = currentNode.Parent;
         }
+        //print(FinalPath.Count);
         FinalPath.Reverse();
 
         grid.FinalPath = FinalPath;

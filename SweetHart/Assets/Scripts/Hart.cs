@@ -1,16 +1,22 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 
 public class Hart : Spirit
 {
-    Grid grid;
+    public GameObject aStar;
+    PathFinding pathF;
 
     [SerializeField] private float eyesHeightOffset;
     [SerializeField] private float interactionDistance;
 
-    private Vector3 playerLastKnownLocation;
+    private int nextNodePos;
+    private const int nextNodePosChase = 1;
+
+    private List<Node> playerLastKnownLocation;
+    private int movementIndex;
     private bool isPlayerVisible;
     private bool isChasingPlayer;
     private bool caughtPlayer;
@@ -18,12 +24,13 @@ public class Hart : Spirit
 
     void Start()
     {
-        grid = GetComponent<Grid>();
+        pathF = aStar.GetComponent<PathFinding>();
+        nextNodePos = 1;
     }
 
     void Update()
     {
-        //base.Float();
+        base.Float();
         if(!caughtPlayer) {
             SearchForPlayer();
         } else { //TODO: stop hart. }
@@ -41,66 +48,101 @@ public class Hart : Spirit
                         CheckIfPlayerVisible();
                     }
             }
-            // check if player isn't behind any obstacle
+            // check if player isn't behind any obstacle.
             if(target != null) {
                 CheckIfPlayerVisible();
             }
         }
 
-        private void CheckIfPlayerVisible()
-        {
-            Vector3 sightPosition = new Vector3(
-                transform.position.x,
-                transform.position.y + eyesHeightOffset,
-                transform.position.z
-                );
+    private void CheckIfPlayerVisible() {
+        Vector3 sightPosition = new Vector3(
+            transform.position.x,
+            transform.position.y + eyesHeightOffset,
+            transform.position.z
+            );
 
-            Debug.DrawRay(sightPosition, (target.transform.position - transform.position), Color.green);
+        Debug.DrawRay(sightPosition, (target.transform.position - transform.position), Color.green);
 
-            RaycastHit hit;
-            if(Physics.Raycast(sightPosition, (target.transform.position - transform.position), out hit)) {
-                if(hit.transform.gameObject == target.transform.gameObject) {
-                    isPlayerVisible = true;
-                    isChasingPlayer = true;
+        RaycastHit hit;
+        if(Physics.Raycast(sightPosition, (target.transform.position - transform.position), out hit)) {
+            if(hit.transform.gameObject == target.transform.gameObject) {
+                isPlayerVisible = true;
+                isChasingPlayer = true;
 
-                    target = hit.transform.GetComponent<Player>();
-                    playerLastKnownLocation = target.transform.position;
+                target = hit.transform.GetComponent<Player>();
 
-                    if(!caughtPlayer) {
-                        ChasePlayer();
-                    }
-                    else {
-                        //TODO stop hart.
-                    }
+                playerLastKnownLocation = pathF.FinalPath;
+                nextNodePos = 1;
+
+                if(!caughtPlayer) {
+                    StopCoroutine(ToPlayerLastKnownPosition());
+                    StartCoroutine(ChasePlayer());
                 }
                 else {
-                    isPlayerVisible = false;
+                    //TODO stop hart.
+                }
+            }
+            else {
+                isPlayerVisible = false;
+                StopCoroutine(ChasePlayer());
+                StartCoroutine(ToPlayerLastKnownPosition());
+            }
+        }
+    }
+
+    private IEnumerator ChasePlayer() {
+
+        if(pathF.FinalPath == null) {
+            // wait for path to be created.
+        }
+        else {
+            if(playerLastKnownLocation.Count == 1) {
+                // get closer and jumpscare player.
+                transform.position = Vector3.MoveTowards(transform.position, new Vector3(playerLastKnownLocation[0].position.x, transform.position.y, playerLastKnownLocation[0].position.z), chasingSpeed * Time.deltaTime);
+            }
+            else {
+                // chase player node after node.
+                if(transform.position.x != playerLastKnownLocation.Last().position.x && transform.position.z != playerLastKnownLocation.Last().position.z) {
+                    if(transform.position.x != playerLastKnownLocation[nextNodePosChase].position.x && transform.position.z != playerLastKnownLocation[nextNodePosChase].position.z) {
+                        transform.position = Vector3.MoveTowards(transform.position, new Vector3(playerLastKnownLocation[nextNodePosChase].position.x, transform.position.y, playerLastKnownLocation[nextNodePosChase].position.z), chasingSpeed * Time.deltaTime);
+                    }
                 }
             }
         }
+        yield return null;
+    }
 
-        private void ChasePlayer()
-        {
-        //transform.position = Vector3.MoveTowards(transform.position, playerLastKnownLocation, chasingSpeed * Time.deltaTime);
-            if(transform.position == playerLastKnownLocation) {
-                isChasingPlayer = false;
-                //TODO: patrol mode.
+    private IEnumerator ToPlayerLastKnownPosition() {
+        if(transform.position.x != playerLastKnownLocation.Last().position.x && transform.position.z != playerLastKnownLocation.Last().position.z) {
+                if(transform.position.x != playerLastKnownLocation[nextNodePos].position.x && transform.position.z != playerLastKnownLocation[nextNodePos].position.z) {
+                transform.position = Vector3.MoveTowards(transform.position, new Vector3(playerLastKnownLocation[nextNodePos].position.x, transform.position.y, playerLastKnownLocation[nextNodePos].position.z), chasingSpeed * Time.deltaTime);
+            }
+            else {
+                if(nextNodePos < playerLastKnownLocation.Count) {
+                    nextNodePos++;
+                }
             }
         }
-
-        private void OpenDoor(Collider col)
-        {
-            Door door = col.transform.GetComponent<Door>();
-            if(door.IsLocked) { door.Locked(); } else { door.IsOpen = true; door.OpenClose(); }
+        else {
+            // player's last known location reached. reset nodePos to 1 for the next time.
+            nextNodePos = 1;
         }
+        yield return null;
+    }
 
-        private void OnTriggerEnter(Collider col)
+    private void OpenDoor(Collider col) {
+        Door door = col.transform.GetComponent<Door>();
+        if(door.IsLocked) { door.Locked(); } else { door.IsOpen = true; door.OpenClose(); }
+    }
+
+    private void OnTriggerEnter(Collider col)
         {
             // player collision
             if(col.gameObject.tag == "Player") {
                 if(!caughtPlayer && isPlayerVisible) {
                     col.GetComponent<UnityStandardAssets.Characters.FirstPerson.FirstPersonController>().IsCaught = true;
                     caughtPlayer = true;
+                // freeze hart's rotation.
                     GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
                 }
             }
