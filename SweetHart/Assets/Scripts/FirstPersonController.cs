@@ -64,6 +64,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private float m_NextStep;
         private AudioSource m_AudioSource;
 
+        [Header("Hart")]
+        [SerializeField] private float lookAtHartHeightAdjustment = 0.2f;
         private GameObject hart;
         private Quaternion spinToHart;
 
@@ -379,7 +381,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void LookAtHart()
         {
-            Vector3 direction = hart.transform.position - transform.position;
+            Vector3 direction = new Vector3(hart.transform.position.x,
+                hart.transform.position.y - lookAtHartHeightAdjustment,
+                hart.transform.position.z) - transform.position;
             transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(direction), 5 * Time.deltaTime);
             m_Camera.transform.rotation = new Quaternion(0f, 0f, 0f, 0);
         }

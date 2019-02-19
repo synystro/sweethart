@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5367690850403152158}
   - component: {fileID: 5367690850403152156}
   - component: {fileID: 5367690850403152159}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Bed
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -79,7 +79,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5367690851606498569}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: HidingSpot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -726,6 +726,14 @@ PrefabInstance:
     - target: {fileID: 100000, guid: 2b127815fd0f2074eae3a0c6a4786d0b, type: 3}
       propertyPath: m_Name
       value: CubePrototype02x02x02 (8)
+      objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: 2b127815fd0f2074eae3a0c6a4786d0b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: 2b127815fd0f2074eae3a0c6a4786d0b, type: 3}
+      propertyPath: m_NavMeshLayer
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 2b127815fd0f2074eae3a0c6a4786d0b, type: 3}
       propertyPath: m_LocalPosition.x

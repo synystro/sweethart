@@ -7,7 +7,6 @@ public class Spirit : MonoBehaviour
 
     [Header("Chasing")]
     [SerializeField] protected float chasingRange;
-    [SerializeField] protected float chasingSpeed;
 
     [Header("Flying")]
     [SerializeField] private float distanceFromFloor;

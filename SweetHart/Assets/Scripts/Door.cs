@@ -14,12 +14,10 @@ public class Door : MonoBehaviour
     protected float targetAngle;
     protected float closedTimer;
     protected bool isMoving;
-    protected bool isCompletelyOpen;
 
     public string DoorID { get { return doorID; } }
     public bool IsOpen { get { return isOpen; } set { isOpen = value; } }
     public bool IsLocked { get { return isLocked; } }
-    public bool IsCompletelyOpen { get { return isCompletelyOpen; } }
 
     void Start()
     {
